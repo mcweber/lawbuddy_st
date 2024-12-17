@@ -1,5 +1,5 @@
 # ---------------------------------------------------
-VERSION ="29.11.2024"
+VERSION ="17.12.2024"
 # Author: M. Weber
 # ---------------------------------------------------
 # ---------------------------------------------------
@@ -51,6 +51,7 @@ def main() -> None:
         st.session_state.marktbereich: str = "Alle"
         st.session_state.marktbereichIndex: int = 0
         st.session_state.results: str = ""
+        st.session_state.search_db: bool = False
         st.session_state.searchResultsLimit:int  = 5
         st.session_state.searchStatus: bool = False
         st.session_state.searchWeb: bool = False
@@ -72,6 +73,10 @@ def main() -> None:
         #     st.caption(f"Eingeloggt als: {st.session_state.userName}")
         # else:
         #     st.caption("Nicht eingeloggt.")
+        switch_search_db = st.checkbox(label="DB-Suche", value=st.session_state.search_db)
+        if switch_search_db != st.session_state.search_db:
+            st.session_state.searchWeb = switch_search_db
+            st.rerun()
         switch_searchWeb = st.checkbox(label="Web-Suche", value=st.session_state.searchWeb)
         if switch_searchWeb != st.session_state.searchWeb:
             st.session_state.searchWeb = switch_searchWeb
@@ -121,16 +126,17 @@ def main() -> None:
         
         # Database Search ------------------------------------------------
         db_results_str = ""
-        results_list, suchworte = ask_mongo.text_search(search_text=question, gen_suchworte=True, limit=10)
-        with st.expander("Entscheidungssuche"):
-            st.write(f"Suchworte: {suchworte}")
-            for result in results_list:
-                st.write(f"{result['gericht']}, {result['entsch_datum']}, {result['aktenzeichen']}")
-                db_results_str += f"Gericht: {result['gericht']}\nDatum: {result['entsch_datum']}\nAktenzeichen: {result['aktenzeichen']}\nText: {result['xml_text']}\n\n"
-        if len(results_list) == 0:
-            st.write("Keine Entscheidungen gefunden.")
-            exit()
-        
+        if st.session_state.search_db:
+            results_list, suchworte = ask_mongo.text_search(search_text=question, gen_suchworte=True, limit=10)
+            with st.expander("Entscheidungssuche"):
+                st.write(f"Suchworte: {suchworte}")
+                for result in results_list:
+                    st.write(f"{result['gericht']}, {result['entsch_datum']}, {result['aktenzeichen']}")
+                    db_results_str += f"Gericht: {result['gericht']}\nDatum: {result['entsch_datum']}\nAktenzeichen: {result['aktenzeichen']}\nText: {result['xml_text']}\n\n"
+            if len(results_list) == 0:
+                st.write("Keine Entscheidungen gefunden.")
+                exit()
+            
         # LLM Search ------------------------------------------------
         llm_handler = ask_llm.LLMHandler(llm="gpt4omini")
         summary = llm_handler.ask_llm(

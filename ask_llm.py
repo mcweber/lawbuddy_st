@@ -1,5 +1,5 @@
 # ---------------------------------------------------
-# Version: 14.12.2024
+# Version: 17.12.2024
 # Author: M. Weber
 # ---------------------------------------------------
 # 30.08.2024 switched to class-based approach
@@ -23,7 +23,7 @@ class LLMHandler:
         load_dotenv()
 
         if self.LLM == "gpt4o" or self.LLM == "gpt4omini":
-            self.openaiClient = openai.OpenAI(api_key=os.environ.get('OPENAI_API_KEY_PRIVAT'))
+            self.openaiClient = openai.OpenAI(api_key=os.environ.get('OPENAI_API_KEY_DVV'))
         elif self.LLM == "llama":
             self.groqClient = Groq(api_key=os.environ.get('GROQ_API_KEY_PRIVAT'))
         elif self.LLM == "gemini":
@@ -46,9 +46,9 @@ class LLMHandler:
         ]
         prompt.extend(history)
         if db_results_str:
-            prompt.append({"role": "assistant", "content": f'Here are some relevant information from a database search:\n{db_results_str}'})
+            prompt.append({"role": "assistant", "content": f'Here is relevant information from a database search:\n{db_results_str}'})
         if web_results_str:
-            prompt.append({"role": "assistant", "content": f'Here are some relevant information from a web search:\n{web_results_str}'})
+            prompt.append({"role": "assistant", "content": f'Here is relevant information from a web search:\n{web_results_str}'})
         if source_doc_str:
             prompt.append({"role": "assistant", "content": f'This is the source document:\n{source_doc_str}'})
         question_prefix = "Based on the above information, " if web_results_str or db_results_str else ""

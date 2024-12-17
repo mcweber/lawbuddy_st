@@ -23,7 +23,7 @@ class LLMHandler:
         load_dotenv()
 
         if self.LLM == "gpt4o" or self.LLM == "gpt4omini":
-            self.openaiClient = openai.OpenAI(api_key=os.environ.get('OPENAI_API_KEY_DVV'))
+            self.openaiClient = openai.OpenAI(api_key=os.environ.get('OPENAI_API_KEY_PRIVAT'))
         elif self.LLM == "llama":
             self.groqClient = Groq(api_key=os.environ.get('GROQ_API_KEY_PRIVAT'))
         elif self.LLM == "gemini":

@@ -12,6 +12,7 @@ import ask_mongo
 import manage_user as user
 import manage_prompts as prompts
 
+import os
 from dotenv import load_dotenv
 load_dotenv()
 

@@ -10,7 +10,6 @@ from tavily import TavilyClient
 # Define sources --------------------------------------------------------------
 STATUTES = [
     "www.gesetze-im-internet.de",
-    "www.dejure.org"
 ]
 
 JURISDICTION = [

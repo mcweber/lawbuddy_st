@@ -14,11 +14,11 @@ STATUTES = [
 
 JURISDICTION = [
     "openjur.de",
-    "www.rechtsprechung-im-internet.de"
+    "www.rechtsprechung-im-internet.de",
 ]
 
 COMMENTS = [
-    ""
+    "https://bgb.kommentar.de/",
 ]
 
 # Define class LegalWebSearch ------------------------------------------------

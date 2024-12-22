@@ -1,5 +1,5 @@
 # ---------------------------------------------------
-VERSION ="20.12.2024"
+VERSION ="21.12.2024"
 # Author: M. Weber
 # ---------------------------------------------------
 #
@@ -9,7 +9,7 @@ import streamlit as st
 import ask_llm
 import ask_web
 import ask_mongo
-import manage_user as user
+# import manage_user as user
 import manage_prompts as prompts
 
 import os
@@ -19,33 +19,15 @@ load_dotenv()
 # Functions -------------------------------------------------------------
 @st.dialog("Login")
 def login_code_dialog() -> None:
-    with st.form(key="loginForm"):
+    with st.form(key="login_code_form"):
         code = st.text_input(label="Code", type="password")
         if st.form_submit_button("Enter"):
             if code == os.environ.get('CODE'):
+                st.success("Code is correct.")
                 st.session_state.code = True
                 st.rerun()
             else:
                 st.error("Code is not correct.")
-
-@st.experimental_dialog("Login User")
-def login_user_dialog() -> None:
-    with st.form(key="loginForm"):
-        st.write(f"Status: {st.session_state.userStatus}")
-        user_name = st.text_input("Benutzer")
-        user_pw = st.text_input("Passwort", type="password")
-        if st.form_submit_button("Login"):
-            if user_name and user_pw:
-                active_user = chatbuddy_user.check_user(user_name, user_pw)
-                if active_user:
-                    st.session_state.userName = active_user["username"]
-                    st.session_state.userRole = active_user["rolle"]
-                    st.session_state.userStatus = 'True'
-                    st.rerun()
-                else:
-                    st.error("User not found.")
-            else:
-                st.error("Please fill in all fields.")
 
 def write_history() -> None:
     for entry in st.session_state.history:
@@ -63,19 +45,14 @@ def main() -> None:
             prompts.add_systemprompt("Du bist ein hilfreicher Assistent.")
         st.session_state.init: bool = True
         st.session_state.code: bool = False
+        st.session_state.system_prompt: str = prompts.get_systemprompt()
+        st.session_state.search_status: bool = False
+        st.session_state.search_db: bool = False
+        st.session_state.search_web: bool = False
         st.session_state.history: list = []
-        st.session_state.marktbereich: str = "Alle"
-        st.session_state.marktbereichIndex: int = 0
-        st.session_state.results: str = ""
-        st.session_state.searchResultsLimit:int  = 5
-        st.session_state.searchStatus: bool = False
-        st.session_state.searchWeb: bool = False
-        st.session_state.showLatest: bool = False
-        st.session_state.systemPrompt: str = prompts.get_systemprompt()
-        st.session_state.userName: str = ""
-        st.session_state.userRole: str = ""
-        st.session_state.userStatus: bool = True
-        st.session_state.webResults: str = ""
+        st.session_state.results_limit:int  = 5
+        st.session_state.results_web: str = ""
+        st.session_state.results_db: str = ""
 
     if st.session_state.code == False:
         login_code_dialog()
@@ -84,47 +61,60 @@ def main() -> None:
     with st.sidebar:
         st.header("LawBuddy")
         st.caption(f"Version: {VERSION} Status: POC")
-        # if st.session_state.userStatus and st.session_state.userName:
-        #     st.caption(f"Eingeloggt als: {st.session_state.userName}")
-        # else:
-        #     st.caption("Nicht eingeloggt.")
-        switch_searchWeb = st.checkbox(label="Web-Suche", value=st.session_state.searchWeb)
-        if switch_searchWeb != st.session_state.searchWeb:
-            st.session_state.searchWeb = switch_searchWeb
+
+        checkbox = st.checkbox(label="Web-Suche", value=st.session_state.search_web)
+        if checkbox != st.session_state.search_web:
+            st.session_state.search_web = checkbox
             st.rerun()
-        switch_search_results = st.slider("Search Results", 1, 50, st.session_state.searchResultsLimit)
-        if switch_search_results != st.session_state.searchResultsLimit:
-            st.session_state.searchResultsLimit = switch_search_results
+        
+        checkbox = st.checkbox(label="DB-Suche", value=st.session_state.search_db)
+        if checkbox != st.session_state.search_db:
+            st.session_state.search_db = checkbox
             st.rerun()
-        switch_SystemPrompt = st.text_area("System-Prompt", st.session_state.systemPrompt, height=200)
-        if switch_SystemPrompt != st.session_state.systemPrompt:
-            st.session_state.systemPrompt = switch_SystemPrompt
+        
+        slider = st.slider("Search Results", 1, 50, st.session_state.results_limit)
+        if slider != st.session_state.results_limit:
+            st.session_state.results_limit = slider
+            st.rerun()
+        
+        switch_SystemPrompt = st.text_area("System-Prompt", st.session_state.system_prompt, height=200)
+        if switch_SystemPrompt != st.session_state.system_prompt:
+            st.session_state.system_prompt = switch_SystemPrompt
             prompts.update_systemprompt(switch_SystemPrompt)
             st.rerun()
+        
         st.divider()
-        st.text_area("Web Results", st.session_state.webResults, height=200)
+        
+        st.text_area("Web Results", st.session_state.results_web, height=200)
+        
         st.divider()
+        
         st.text_area("History", st.session_state.history, height=200)
         if st.button("Clear History"):
             st.session_state.history = []
-            st.session_state.webResults = ""
+            st.session_state.results_web = ""
+            st.session_state.results_db = ""
             st.rerun()
 
     # Define Search Form ----------------------------------------------
     question = st.chat_input("Frage eingeben:")
+
     if question:
+    
         if question == "test":
             question = "Was sagt das BAG zur Abmahnung?"
+    
         if question == "reset":
             st.session_state.history = []
-            st.session_state.webResults = ""
+            st.session_state.web_results = ""
             st.rerun()
-        st.session_state.searchStatus = True
+    
+        st.session_state.search_status = True
 
     # Define Search & Search Results -------------------------------------------
-    if st.session_state.userStatus and st.session_state.searchStatus:
+    if st.session_state.search_status:
         web_results_str = ""
-        if st.session_state.searchWeb and st.session_state.webResults == "":
+        if st.session_state.search_web and st.session_state.web_results == "":
             # Web Search ------------------------------------------------
             web_search_handler = ask_web.WebSearch()
             results = web_search_handler.search(query=question, score=0.5, limit=st.session_state.searchResultsLimit)
@@ -133,30 +123,28 @@ def main() -> None:
                     st.write(f"[{round(result['score'], 3)}] {result['title']} [{result['url']}]")
                     # web_results_str += f"Titel: {result['title']}\nURL: {result['url']}\n\n"
                     web_results_str += f"Titel: {result['title']}\nURL: {result['url']}\nText: {result['content']}\n\n"
-            st.session_state.webResults = web_results_str
+            st.session_state.web_results = web_results_str
 
         # Database Search ------------------------------------------------
         db_results_str = ""
-        results_list, suchworte = ask_mongo.text_search(search_text=question, gen_suchworte=True, limit=10)
-        with st.expander("Entscheidungssuche"):
-            st.write(f"Suchworte: {suchworte}")
-            for result in results_list:
-                st.write(f"{result['gericht']}, {result['entsch_datum']}, {result['aktenzeichen']}")
-                db_results_str += f"Gericht: {result['gericht']}\nDatum: {result['entsch_datum']}\nAktenzeichen: {result['aktenzeichen']}\nText: {result['xml_text']}\n\n"
-        if len(results_list) == 0:
-            st.write("Keine Entscheidungen gefunden.")
-            exit()
-
+        if st.session_state.search_db and st.session_state.results_db == "":
+            results_list, suchworte = ask_mongo.text_search(search_text=question, gen_suchworte=True, limit=10)
+            with st.expander("Entscheidungssuche"):
+                st.write(f"Suchworte: {suchworte}")
+                for result in results_list:
+                    st.write(f"{result['gericht']}, {result['entsch_datum']}, {result['aktenzeichen']}")
+                    db_results_str += f"Gericht: {result['gericht']}\nDatum: {result['entsch_datum']}\nAktenzeichen: {result['aktenzeichen']}\nText: {result['xml_text']}\n\n"
+            st.session_state.results_db = db_results_str
+            
         # LLM Search ------------------------------------------------
-        llm_handler = ask_llm.LLMHandler(llm="gpt4omini")
+        llm_handler = ask_llm.LLMHandler(llm="gemini")
         summary = llm_handler.ask_llm(
-            # llm=st.session_state.llmStatus,
             temperature=0.2,
             question=question,
             history=st.session_state.history,
-            systemPrompt=st.session_state.systemPrompt,
-            db_results_str=db_results_str,
-            web_results_str=st.session_state.webResults
+            system_prompt=st.session_state.system_prompt,
+            db_results_str=st.session_state.results_db,
+            web_results_str=st.session_state.results_web
             )
         # with st.chat_message("assistant"):
         #     # st.write(prompt)
@@ -164,7 +152,7 @@ def main() -> None:
         st.session_state.history.append({"role": "user", "content": question})
         st.session_state.history.append({"role": "assistant", "content": summary})
         write_history()
-        st.session_state.searchStatus = False
+        st.session_state.search_status = False
 
 if __name__ == "__main__":
     main()

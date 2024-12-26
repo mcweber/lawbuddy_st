@@ -5,6 +5,10 @@
 # 30.08.2024 switched to class-based approach
 # 12.10.2024 added source documents
 # ---------------------------------------------------
+# Description:
+# llm: gpt4o, gpt4omini, llama, gemini
+# local: True/False
+# ---------------------------------------------------
 
 from datetime import datetime
 import os
@@ -18,7 +22,7 @@ import ollama
 
 # Define class ---------------------------------------------------
 class LLMHandler:
-    def __init__(self, llm: str = "gpt4omini", local: bool = False):
+    def __init__(self, llm: str = "gemini", local: bool = False):
         self.LLM = llm
         self.LOCAL = local
         load_dotenv()

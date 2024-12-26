@@ -1,5 +1,5 @@
 # ---------------------------------------------------
-VERSION ="22.12.2024"
+VERSION ="26.12.2024"
 # Author: M. Weber
 # ---------------------------------------------------
 
@@ -145,7 +145,7 @@ def main() -> None:
             st.session_state.results_db = db_results_str
             
         # LLM Search ------------------------------------------------
-        llm_handler = ask_llm.LLMHandler(llm="gemini")
+        llm_handler = ask_llm.LLMHandler(llm="llama")
         summary = llm_handler.ask_llm(
             temperature=0.2,
             question=question,

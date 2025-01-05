@@ -1,6 +1,9 @@
 # ---------------------------------------------------
-VERSION ="26.12.2024"
+VERSION ="05.01.2025"
 # Author: M. Weber
+# ---------------------------------------------------
+# 05.01.2024 added o1, o1-mini
+# 05.01.2025 added model select
 # ---------------------------------------------------
 
 import streamlit as st
@@ -44,12 +47,13 @@ def main() -> None:
             prompts.add_systemprompt("Du bist ein hilfreicher Assistent.")
         st.session_state.init: bool = True
         st.session_state.code: bool = False
+        st.session_state.model: str = "gemini"
         st.session_state.system_prompt: str = prompts.get_systemprompt()
         st.session_state.search_status: bool = False
         st.session_state.search_db: bool = False
         st.session_state.search_web: bool = False
         st.session_state.history: list = []
-        st.session_state.results_limit:int  = 5
+        st.session_state.results_limit:int  = 10
         st.session_state.results_web: str = ""
         st.session_state.results_db: str = ""
 
@@ -61,7 +65,12 @@ def main() -> None:
         st.header("LawBuddy")
         st.caption(f"Version: {VERSION} Status: POC")
 
-        checkbox = st.checkbox(label="Web-Suche", value=st.session_state.search_web)
+        radio = st.radio("Model", ask_llm.MODELS, index=ask_llm.MODELS.index(st.session_state.model))
+        if radio != st.session_state.model:
+            st.session_state.model = radio
+            st.rerun()
+
+        checkbox = st.checkbox(label="LegalWeb-Suche", value=st.session_state.search_web)
         if checkbox != st.session_state.search_web:
             st.session_state.search_web = checkbox
             st.rerun()
@@ -71,7 +80,7 @@ def main() -> None:
             st.session_state.search_db = checkbox
             st.rerun()
         
-        slider = st.slider("Search Results", 1, 50, st.session_state.results_limit)
+        slider = st.slider("Search Results", min_value=0, max_value=50, value=st.session_state.results_limit, step=10)
         if slider != st.session_state.results_limit:
             st.session_state.results_limit = slider
             st.rerun()
@@ -96,12 +105,18 @@ def main() -> None:
             st.rerun()
 
     # Define Search Form ----------------------------------------------
-    question = st.chat_input("Frage eingeben:")
+    question = st.chat_input("Frage oder test1, test2, test3 eingeben:")
 
     if question:
     
-        if question == "test":
+        if question == "test1":
             question = "Was sagt das BAG zur Abmahnung?"
+
+        if question == "test2":
+            question = "Kann man einen Mietvertrag per email kündigen?"
+
+        if question == "test3":
+            question = "Muß ein 14 Jähriger das erhöhte Beförderungsentgelt in der S-Bahn bezahlen?"
     
         if question == "reset":
             st.session_state.history = []
@@ -145,7 +160,7 @@ def main() -> None:
             st.session_state.results_db = db_results_str
             
         # LLM Search ------------------------------------------------
-        llm_handler = ask_llm.LLMHandler(llm="llama")
+        llm_handler = ask_llm.LLMHandler()
         summary = llm_handler.ask_llm(
             temperature=0.2,
             question=question,

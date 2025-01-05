@@ -1,12 +1,13 @@
 # ---------------------------------------------------
-# Version: 20.12.2024
+# Version:05.01.2025
 # Author: M. Weber
 # ---------------------------------------------------
 # 30.08.2024 switched to class-based approach
 # 12.10.2024 added source documents
+# 05.01.2024 added o1, o1-mini, deepseek
 # ---------------------------------------------------
 # Description:
-# llm: gpt4o, gpt4omini, llama, gemini
+# llm: gemini, o1, o1-mini, gpt4o, gpt4omini, deepseek, llama
 # local: True/False
 # ---------------------------------------------------
 
@@ -20,22 +21,30 @@ import google.generativeai as gemini
 from groq import Groq
 import ollama
 
+MODELS = ["gemini", "o1", "o1-mini", "gpt-4o", "gpt-4o-mini", "deepseek", "llama"]
+
 # Define class ---------------------------------------------------
 class LLMHandler:
+    
+    
     def __init__(self, llm: str = "gemini", local: bool = False):
         self.LLM = llm
         self.LOCAL = local
         load_dotenv()
 
-        if self.LLM == "gpt4o" or self.LLM == "gpt4omini":
+        if self.LLM in ["o1", "o1-mini", "gpt-4o", "gpt4o-mini"]:
             self.openaiClient = openai.OpenAI(api_key=os.environ.get('OPENAI_API_KEY_PRIVAT'))
         elif self.LLM == "llama":
             self.groqClient = Groq(api_key=os.environ.get('GROQ_API_KEY_PRIVAT'))
         elif self.LLM == "gemini":
             self.geminiClient = openai.OpenAI(
                 api_key=os.environ.get('GEMINI_API_KEY'),
-                base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
-               )
+                base_url="https://generativelanguage.googleapis.com/v1beta/openai/")
+        elif self.LLM == "deepseek":
+            self.deepseekClient = openai.OpenAI(
+                api_key=os.environ.get('DEEPSEEK_API_KEY'),
+                base_url="https://api.deepseek.com")
+        
 
     @staticmethod
     def is_ollama_running() -> bool:
@@ -80,17 +89,17 @@ class LLMHandler:
             return f"Error: No valid local LLM specified [{self.LLM}]."
 
     def _handle_remote_llm(self, temperature: float, input_messages: list) -> str:
-        if self.LLM == "gpt4o":
-            response = self.openaiClient.chat.completions.create(model="gpt-4o", temperature=temperature, messages=input_messages)
-            return response.choices[0].message.content
-        elif self.LLM == "gpt4omini":
-            response = self.openaiClient.chat.completions.create(model="gpt-4o-mini", temperature=temperature, messages=input_messages)
+        if self.LLM in ["o1", "o1-mini", "gpt-4o", "gpt4o-mini"]:
+            response = self.openaiClient.chat.completions.create(model=self.LLM, temperature=temperature, messages=input_messages)
             return response.choices[0].message.content
         elif self.LLM == "llama":
             response = self.groqClient.chat.completions.create(model="llama-3.3-70b-versatile", messages=input_messages)
             return response.choices[0].message.content
         elif self.LLM == "gemini":
             response = self.geminiClient.chat.completions.create(model="gemini-1.5-flash-latest", temperature=temperature, messages=input_messages)
+            return(response.choices[0].message.content)
+        elif self.LLM == "deepseek":
+            response = self.deepseekClient.chat.completions.create(model="deepseek-chat", temperature=temperature, messages=input_messages)
             return(response.choices[0].message.content)
         else:
             return "Error: No valid remote LLM specified."

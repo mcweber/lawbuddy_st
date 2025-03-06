@@ -3,7 +3,9 @@ annotated-types
 anthropic
 anyio
 attrs
+beautifulsoup4
 blinker
+bs4
 cachetools
 certifi
 charset-normalizer
@@ -34,6 +36,7 @@ huggingface-hub
 idna
 jinja2
 jiter
+joblib
 jsonschema
 jsonschema-specifications
 markdown-it-py
@@ -61,6 +64,7 @@ pydeck
 pygments
 pymongo
 pyparsing
+pypdf2
 pyreqwest-impersonate
 python-dateutil
 python-dotenv
@@ -72,11 +76,14 @@ requests
 rich
 rpds-py
 rsa
+sacremoses
 safetensors
+scrape-web
 setuptools
 six
 smmap
 sniffio
+soupsieve
 streamlit
 sympy
 tavily-python

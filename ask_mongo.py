@@ -22,7 +22,7 @@ llm = ask_llm.LLMHandler(llm="gpt4o", local=False)
 
 # Init MongoDB Client
 load_dotenv()
-mongoClient = MongoClient(os.environ.get('MONGO_URI_PRIVAT'))
+mongoClient = MongoClient(os.environ.get('MONGO_URI_PRIVAT_01'))
 database = mongoClient.law_buddy
 collection = database.rechtsprechung
 collection_config = database.config

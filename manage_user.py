@@ -1,5 +1,5 @@
 # ---------------------------------------------------
-# Version: 20.09.2024
+# Version: 06.03.2024
 # Author: M. Weber
 # ---------------------------------------------------
 # ---------------------------------------------------
@@ -14,7 +14,7 @@ from pymongo.errors import DuplicateKeyError
 # Define constants ----------------------------------
 load_dotenv()
 
-mongoClient = MongoClient(os.environ.get('MONGO_URI_PRIVAT'))
+mongoClient = MongoClient(os.environ.get('MONGO_URI_PRIVAT_01'))
 database = mongoClient.law_buddy
 collection = database.users
 

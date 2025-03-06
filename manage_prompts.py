@@ -1,5 +1,5 @@
 # ---------------------------------------------------
-# Version: 17.12.2024
+# Version: 06.03.2025
 # Author: M. Weber
 # ---------------------------------------------------
 # 17.12.2024 deactivated SSL verification
@@ -16,7 +16,7 @@ from pymongo.errors import DuplicateKeyError
 load_dotenv()
 
 mongoClient = MongoClient(
-    os.environ.get('MONGO_URI_PRIVAT'),
+    os.environ.get('MONGO_URI_PRIVAT_01'),
     tls=True,
     tlsAllowInvalidCertificates=True
 )

@@ -296,8 +296,8 @@ def generate_query(question: str = "") -> str:
         str: The generated search keywords.
     """
     task = f"""
-            Erstelle auf Basis der Frage '{question}' eine Liste von maximal 3 Schlagworten mit deren Hilfe relevante Dokumente zu der Fragestellung in einer Datenbank gefunden werden können.
-            Das Format ist "Stichwort1" "Stichwort2" "Stichwort3"
+            Erstelle auf Basis der Frage '{question}' eine Liste mit Schlagworten mit deren Hilfe relevante Dokumente in einer Datenbanksuche gefunden werden können.
+            Das Ausgabeformat ist: "Stichwort1" "Stichwort2" "Stichwort3"
             """
     return llm.ask_llm(temperature=0.1, question=task) 
     

@@ -79,7 +79,7 @@ def main() -> None:
             if switch_search_results != st.session_state.searchResultsLimit:
                 st.session_state.searchResultsLimit = switch_search_results
                 st.rerun()
-            st.divider()
+        st.divider()
         
         # File Upload ---------------------------------------------------
         file_data = st.file_uploader(label="Datei Upload", type=["pdf", "xlsx"])
@@ -115,6 +115,8 @@ def main() -> None:
         if st.button("Clear History"):
             st.session_state.history = []
             st.session_state.webResults = ""
+            st.session_state.dbResults = ""
+            st.session_state.source_doc_str = ""
             st.rerun()
         
     # Define Search Form ----------------------------------------------
@@ -126,12 +128,18 @@ def main() -> None:
 
     # Define Search & Search Results -------------------------------------------
     if st.session_state.code and st.session_state.searchStatus:
+        
+        # Web Search ------------------------------------------------
         web_results_str = ""
         if st.session_state.searchWeb and st.session_state.webResults == "":
-            # Web Search ------------------------------------------------
             web_search_handler = ask_web.WebSearch()
-            results = web_search_handler.search(query=question, score=0.5, limit=st.session_state.searchResultsLimit)
+            if st.session_state.source_doc_str != "":
+                query_string = ask_mongo.generate_query(st.session_state.source_doc_str) + "\n" + question
+            else:
+                query_string = question
+            results = web_search_handler.search(query=query_string, score=0.0, limit=st.session_state.searchResultsLimit)
             with st.expander("WEB Suchergebnisse"):
+                st.write(query_string)
                 for result in results:
                     st.write(f"[{round(result['score'], 3)}] {result['title']} [{result['url']}]")
                     # web_results_str += f"Titel: {result['title']}\nURL: {result['url']}\n\n"
